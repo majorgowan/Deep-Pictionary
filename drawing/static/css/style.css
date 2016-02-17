@@ -1,0 +1,105 @@
+body {
+    font-family: sans-serif; 
+    background: #eee; 
+}
+
+a, h1, h2 { 
+    color: #377ba8; 
+}
+h1, h2 { 
+    font-family: 'Georgia', serif; 
+    margin: 0.5em; 
+}
+h1 { 
+    border-bottom: 2px solid #eee; 
+}
+h2 { 
+    font-size: 1.2em; 
+}
+
+.menu {
+    width: 100%;
+    font-size: 1.5em;
+    padding: 10pt;
+}
+.menu p {
+    margin: 0;
+    margin-left: 1em;
+    text-indent: -1em;
+}
+.menu ul {
+    width: 80%;
+    margin-left: 10%;
+    line-height: 2em;
+}
+.menu li {
+    float: left;
+    width: 70%;
+    padding: 0;
+    margin: 0
+}
+
+.centre_div {
+    width: 100%;
+    text-align: center;
+}
+.centre_div form input {
+    width: 40%;
+    margin: 0 auto;
+    margin-top: 1em;
+    font-size: 1.5em;
+}
+.centre_div button {
+    width: 40%;
+    margin: 0 auto;
+    margin-top: 1em;
+    font-size: 1.5em;
+}
+
+.page { 
+    margin: 2em auto; 
+    width: 80%; 
+    height: 100%;
+    border: 7px solid #ccc; 
+    padding: 0.8em; 
+    background: white; 
+}
+.clear {
+    clear: both;
+}
+
+.metanav { 
+    text-align: right; 
+    font-size: 0.8em; 
+    padding: 0.3em;
+    margin-bottom: 1em; 
+    background: #fafafa; 
+}
+
+.graph {
+    display: inline-block;
+    border: 2px solid #ccc;
+}
+
+.mini_graphs {
+    display: inline-block;
+    width: 300px;
+    margin: 4px auto;
+}
+.mini_graphs canvas {
+    padding: 4px;
+    border: 2px solid #ccc;
+}
+
+.padButton {
+    background-color: rgba(0,0,0,0.6);
+    color: #fff;
+    display: inline-block;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 1.2em;
+    position: relative;
+    text-transform: uppercase;
+    padding: 10px;
+    width: 6.5em;
+}
