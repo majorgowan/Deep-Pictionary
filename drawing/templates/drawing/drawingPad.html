@@ -1,0 +1,107 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    <div class=centre_div>
+        <canvas id="new_graph" class="graph" width = 240 height = 240></canvas>
+        <form id="pictureForm" action="{% url 'drawing:indicateCategory' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="imageDataHidden" name="imageDataHidden" value='hula hoop'>
+            <p>
+                <button id="clear" type="button" class=padButton>Clear</button>
+                &nbsp;&nbsp;
+                <button type="submit" class="padButton"/>Finished</button>
+            </p>
+        </form>
+    </div>
+
+<script type='text/javascript'>
+
+// adapted from from Hudson, JavaScript Creativity
+var colouringBook = (function() {
+    var graph = document.getElementById("new_graph");
+    graph.width = graph.width;   /* "magic" to clear graph or something */
+    var clear = document.querySelector("#clear");
+    var g = graph.getContext('2d');
+    var drawing;
+    var lineWidth = 8;
+    var width = graph.width;
+    var height = graph.height;
+
+    oFormObj = document.forms['pictureForm'];
+    imageStringElement = oFormObj.elements['imageDataHidden']; 
+
+    var pixelArray = [];
+
+    clearCanvas();
+
+    graph.addEventListener('mousedown', startPath);
+    graph.addEventListener('mouseup', endPath);
+    graph.addEventListener('mousemove', handleDrawing);
+
+    clear.addEventListener('click', clearCanvas);
+
+    function preventDefault(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        return false;
+    }
+
+    function startPath(e) {
+        g.strokeStyle = "#000000";
+        g.lineWidth = lineWidth;
+        g.beginPath();
+        var mousePos = getMousePos(graph, e);
+        g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+        drawing = true;
+    }
+
+    function endPath(e) {
+        drawing = false;
+        // scan Canvas and update pixelArray
+        for (var i = 0; i < 30; i++) {
+            for (var j = 0; j < 30; j++) {
+                pixelcolour = g.getImageData(lineWidth*i, lineWidth*j, 1, 1);
+                if (pixelcolour.data[3] > 0) {
+                    pixelArray[30*j + i] = '1';
+                }
+            }
+        } 
+        imageStringElement.value=pixelArray.join("");
+    }
+
+    function handleDrawing(e) {
+        if (drawing == true) {
+            var mousePos = getMousePos(graph, e);
+            g.lineTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+            g.stroke();
+        }
+    }
+
+    function clearCanvas() {
+        graph.width = graph.width;   /* "magic" to clear graph or something */
+        //do draw a bounding rectangle (maybe better to do with an HTML border)
+        //g.strokeStyle = "#000000";
+        //g.lineWidth = 4;
+        //g.strokeRect(0,0,width,height);
+
+        // reset the pixelArray character array
+        pixelArray = [];
+        for (var i = 0; i < 900; i++) {
+            pixelArray.push('0');
+        }
+    }
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: lineWidth * Math.floor((evt.clientX - rect.left) / lineWidth),
+            y: lineWidth * Math.floor((evt.clientY - rect.top) / lineWidth)
+        };
+    }
+
+})();
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    {% if category_list %}
+        <div class=menu>
+            <p>Choose one of the following to draw<br>
+               (but don't tell me which one!)</p>
+            <ul>
+                {% for category in category_list %}
+                    <li>{{ category }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="centre_div">
+            <form action="{% url 'drawing:drawingPad' %}" method="POST">
+                {% csrf_token %}
+                <input type="submit" value="to the drawing board!"/>
+            </form>
+        </div>
+    {% else %}
+        <p>There are no categories, mate.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    {% if category_list %}
+        <div class=menu>
+            <p>So I give up . . . what did you draw (iinapq) ??
+            <div class=centre_div>
+                <form action="{% url 'drawing:recordCategory' %}" method="POST">
+                    {% csrf_token %}
+                    {% for category in category_list %}
+                        <input type="submit" name="submit" value="{{ category }}"/>&nbsp;
+                    {% endfor %}
+                    <input type="hidden" id="imageDataHidden" name="imageDataHidden" value="{{ image_string }}">
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <p>There are no categories, mate.</p>
+    {% endif %}
+{% endblock %}
