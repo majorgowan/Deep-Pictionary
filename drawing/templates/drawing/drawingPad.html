@@ -129,7 +129,7 @@ var colouringBook = (function() {
             var evt = event;
 
         if (evt.touches) {
-            if (e.touches.length == 1) { // only if one-finger touch
+            if (evt.touches.length == 1) { // only if one-finger touch
                 var touch = evt.touches[0];
                 return {
                     x: lineWidth * Math.floor((touch.clientX - rect.left) / lineWidth),
