@@ -40,6 +40,7 @@ var colouringBook = (function() {
 
     graph.addEventListener('touchstart', startTouchPath, false);
     graph.addEventListener('touchmove', handleTouchDrawing, false);
+    graph.addEventListener('touchend', endPath, false);
 
     clear.addEventListener('click', clearCanvas);
 
