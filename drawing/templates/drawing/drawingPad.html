@@ -38,6 +38,9 @@ var colouringBook = (function() {
     graph.addEventListener('mouseup', endPath);
     graph.addEventListener('mousemove', handleDrawing);
 
+    graph.addEventListener('touchstart', startTouchPath);
+    graph.addEventListener('touchmove', handleTouchDrawing);
+
     clear.addEventListener('click', clearCanvas);
 
     function preventDefault(e) {
@@ -50,9 +53,11 @@ var colouringBook = (function() {
     function startPath(e) {
         g.strokeStyle = "#000000";
         g.lineWidth = lineWidth;
-        g.beginPath();
+        // g.beginPath();
         var mousePos = getMousePos(graph, e);
-        g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+        // g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+        // draw a dot
+        g.fillRect(mousePos.x, mousePos.y, lineWidth, lineWidth);
         drawing = true;
     }
 
@@ -73,9 +78,32 @@ var colouringBook = (function() {
     function handleDrawing(e) {
         if (drawing == true) {
             var mousePos = getMousePos(graph, e);
-            g.lineTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
-            g.stroke();
+            // draw a line
+            // g.lineTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+            // g.stroke();
+            // draw a dot
+            g.fillRect(mousePos.x, mousePos.y, lineWidth, lineWidth);
         }
+    }
+
+    function startTouchPath(e) {
+        g.strokeStyle = "#000000";
+        g.lineWidth = lineWidth;
+        // g.beginPath();
+        var touchPos = getTouchPos(graph, e);
+        // g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+        // draw a dot
+        g.fillRect(touchPos.x, touchPos.y, lineWidth, lineWidth);
+    }
+
+    function handleTouchDrawing(e) {
+        var touchPos = getTouchPos(graph, e);
+        // draw a line
+        // g.lineTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
+        // g.stroke();
+        // draw a dot
+        g.fillRect(touchPos.x, touchPos.y, lineWidth, lineWidth);
+        e.preventDefault();  // prevent from scrolling
     }
 
     function clearCanvas() {
@@ -98,6 +126,23 @@ var colouringBook = (function() {
             x: lineWidth * Math.floor((evt.clientX - rect.left) / lineWidth),
             y: lineWidth * Math.floor((evt.clientY - rect.top) / lineWidth)
         };
+    }
+
+    function getTouchPos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+
+        if (!evt)
+            var evt = event;
+
+        if (evt.touches) {
+            if (e.touches.length == 1) { // only if one-finger touch
+                var touch = evt.touches[0];
+                return {
+                    x: lineWidth * Math.floor((touch.clientX - rect.left) / lineWidth),
+                    y: lineWidth * Math.floor((touch.clientY - rect.top) / lineWidth)
+                };
+            }
+        }
     }
 
 })();
