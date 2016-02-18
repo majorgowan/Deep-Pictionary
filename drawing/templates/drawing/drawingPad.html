@@ -43,13 +43,6 @@ var colouringBook = (function() {
 
     clear.addEventListener('click', clearCanvas);
 
-    function preventDefault(e) {
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
-        return false;
-    }
-
     function startPath(e) {
         g.strokeStyle = "#000000";
         g.lineWidth = lineWidth;
@@ -94,6 +87,7 @@ var colouringBook = (function() {
         // g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
         // draw a dot
         g.fillRect(touchPos.x, touchPos.y, lineWidth, lineWidth);
+        e.preventDefault();  // prevent mouse event from firing
     }
 
     function handleTouchDrawing(e) {
