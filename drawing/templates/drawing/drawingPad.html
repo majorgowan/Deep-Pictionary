@@ -38,8 +38,8 @@ var colouringBook = (function() {
     graph.addEventListener('mouseup', endPath);
     graph.addEventListener('mousemove', handleDrawing);
 
-    graph.addEventListener('touchstart', startTouchPath);
-    graph.addEventListener('touchmove', handleTouchDrawing);
+    graph.addEventListener('touchstart', startTouchPath, false);
+    graph.addEventListener('touchmove', handleTouchDrawing, false);
 
     clear.addEventListener('click', clearCanvas);
 
@@ -87,7 +87,7 @@ var colouringBook = (function() {
         // g.moveTo(mousePos.x + lineWidth, mousePos.y + lineWidth);
         // draw a dot
         g.fillRect(touchPos.x, touchPos.y, lineWidth, lineWidth);
-        e.preventDefault();  // prevent mouse event from firing
+        event.preventDefault();  // prevent mouse event from firing
     }
 
     function handleTouchDrawing(e) {
@@ -97,7 +97,7 @@ var colouringBook = (function() {
         // g.stroke();
         // draw a dot
         g.fillRect(touchPos.x, touchPos.y, lineWidth, lineWidth);
-        e.preventDefault();  // prevent from scrolling
+        event.preventDefault();  // prevent from scrolling
     }
 
     function clearCanvas() {
