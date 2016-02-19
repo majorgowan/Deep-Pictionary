@@ -1,2 +1,4 @@
 Django==1.9.2
-wheel==0.24.0
+argparse==1.2.1
+numpy==1.10.4
+wsgiref==0.1.2

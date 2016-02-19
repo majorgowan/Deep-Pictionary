@@ -3,7 +3,7 @@
 {% block content %}
     <div class=centre_div>
         <canvas id="new_graph" class="graph" width = 240 height = 240></canvas>
-        <form id="pictureForm" action="{% url 'drawing:indicateCategory' %}" method="POST">
+        <form id="pictureForm" action="{% url 'drawing:predictCategory' %}" method="POST">
             {% csrf_token %}
             <input type="hidden" id="imageDataHidden" name="imageDataHidden" value='hula hoop'>
             <p>

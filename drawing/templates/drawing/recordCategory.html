@@ -2,7 +2,11 @@
 
 {% block content %}
     <div class="menu">
-        <p>I knew it!  You drew a {{ selected_choice }}!!</p>
+        {% if iwasright %}
+            <p>I knew it!  That's a {{ selected_choice }}!!</p>
+        {% else %}
+            <p>That was my second choice!</p>
+        {% endif %}
     </div>
     <div class=centre_div>
         <canvas id="new_graph" class="graph" width = 240 height = 240></canvas>
