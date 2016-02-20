@@ -52,7 +52,7 @@ def recordCategory(request):
         selected_choice = request.POST['selected']
     else:
         iwasright = False
-    print(selected_choice)
+    # print(selected_choice)
     image_string = request.POST['imageDataHidden']
     draw_date = timezone.now()
     # if drawing is new, update database
@@ -76,6 +76,49 @@ def recordCategory(request):
 def drawingPad(request):
     return render(request, 'drawing/drawingPad.html')
 
+# statistics
+def statPlots(request):
+    # plot the statistics for the different categories
+    ncell = [2,2]
+    category_list = list(Category.objects.values_list('category_name',flat=True))
+    cellCounts = []
+    asymmLRs = []
+    asymmUDs = []
+    asymmROTs = []
+    for cat in category_list:
+        bitmapStringList = list(Drawing.objects.filter(category=cat).values_list('bitmap',flat=True))
+        bitmapList = [features.strToListList(a) for a in bitmapStringList]
+        cellCount = [features.cellCount(a,ncell) for a in bitmapList]
+        cellCounts.append(cellCount)
+        
+        feat = [features.applyStat(a,'asymmLR') for a in cellCount]
+        asymmLRs.append(feat)
+        feat = [features.applyStat(a,'asymmUD') for a in cellCount]
+        asymmUDs.append(feat)
+        feat = [features.applyStat(a,'asymmROT') for a in cellCount]
+        asymmROTs.append(feat)
+
+    colours = ['#000099','#ff0000','#009933','#000000']
+
+    zipadee = zip(category_list, cellCounts, asymmLRs, asymmUDs, asymmROTs, colours)
+
+    mins = []
+    mins.append(min([x for y in asymmLRs for x in y]))
+    mins.append(min([x for y in asymmUDs for x in y]))
+    mins.append(min([x for y in asymmROTs for x in y]))
+
+    maxs = []
+    maxs.append(max([x for y in asymmLRs for x in y]))
+    maxs.append(max([x for y in asymmUDs for x in y]))
+    maxs.append(max([x for y in asymmROTs for x in y]))
+
+    context = {
+            'zipadee': zipadee,
+            'mins': mins, 'maxs': maxs,
+            }
+    return render(request, 'drawing/statPlots.html', context)
+
+###########################################
 # methods for prediction
 def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asymmROT']):
     # ncell [m,n]: break images into m x n blocks
@@ -88,32 +131,23 @@ def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asy
     testLoL = features.strToListList(test_bitmap_string)
     # compute cell-block counts
     blockTrain = [features.cellCount(a,ncell) for a in trainLoL]
-    blockTest = features.cellCount(testLoL)
+    blockTest = features.cellCount(testLoL,ncell)
     # compute requested features and construct feature LoL for knn
     featureLoL = []
     feature_test = []
-    if 'asymmLR' in featureList:
-        feat = [features.asymmLR(a) for a in blockTrain]
-        featureLoL.append(feat)
-        feat_test = features.asymmLR(blockTest)
-        feature_test.append(feat_test)
-    if 'asymmUD' in featureList:
-        feat = [features.asymmUD(a) for a in blockTrain]
-        featureLoL.append(feat)
-        feat_test = features.asymmUD(blockTest)
-        feature_test.append(feat_test)
-    if 'asymmROT' in featureList:
-        feat = [features.asymmROT(a) for a in blockTrain]
-        featureLoL.append(feat)
-        feat_test = features.asymmROT(blockTest)
-        feature_test.append(feat_test)
-    if 'cellCount' in featureList:
-        for cx in range(ncell[0]):
-            for cy in range(ncell[1]):
-                feat = [a[cx][cy] for a in blockTrain]
-                featureLoL.append(feat)
-                feat_test = blockTest[cx][cy]
-                feature_test.append(feat_test)
+    for statName in featureList:
+        if statName != 'cellCount':
+            feat = [features.applyStat(a,statName) for a in blockTrain]
+            featureLoL.append(feat)
+            feat_test = features.applyStat(blockTest,statName)
+            feature_test.append(feat_test)
+        else:
+            for cx in range(ncell[0]):
+                for cy in range(ncell[1]):
+                    feat = [a[cx][cy] for a in blockTrain]
+                    featureLoL.append(feat)
+                    feat_test = blockTest[cx][cy]
+                    feature_test.append(feat_test)
 
     # transpose feature LoL:
     featureLoL = map(list,zip(*featureLoL))
@@ -122,7 +156,7 @@ def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asy
     categories = list(Drawing.objects.values_list('category',flat=True))
 
     dist_to_all = knn.distToAll(featureLoL, feature_test, 'Euclid_sq')
-    #print(zip(categories,dist_to_all))
+    # print(zip(categories,dist_to_all))
     neighbours = knn.nearestClass(dist_to_all,categories,K=5)
     print(neighbours)
     prediction = knn.majorityNeighbour(neighbours)

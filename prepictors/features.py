@@ -85,3 +85,6 @@ def asymmROT(pixelArray):
     import numpy as np
     return sum(sum(abs(np.array(pixelArray) - np.array(rotate(pixelArray,180)))))
 
+def applyStat(pixelArray,statName):
+    methodToCall = globals()[statName]
+    return methodToCall(pixelArray)

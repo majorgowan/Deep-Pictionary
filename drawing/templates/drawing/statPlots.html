@@ -1,0 +1,110 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    <div class=centre_div>
+        <p align=center>
+            asymmUD vs asymmLR<br>
+            &nbsp;
+            {% for zip in zipadee %}
+                <font color="{{ zip.5 }}">{{ zip.0 }}</font>
+                &nbsp;
+            {% endfor %}<br>
+            <canvas id="graph1" width="400px" height="300px"></canvas><br><br>
+            asymmROT vs asymmUD<br>
+            &nbsp;
+            {% for zip in zipadee %}
+                <font color="{{ zip.5 }}">{{ zip.0 }}</font>
+                &nbsp;
+            {% endfor %}<br>
+            <canvas id="graph2" width="400px" height="300px"></canvas><br><br>
+            asymmLR vs asymmROT<br>
+            &nbsp;
+            {% for zip in zipadee %}
+                <font color="{{ zip.5 }}">{{ zip.0 }}</font>
+                &nbsp;
+            {% endfor %}<br>
+            <canvas id="graph3" width="400px" height="300px"></canvas>
+        </p>
+    </div>
+
+<script type='text/javascript'>
+
+clearCanvas("graph1");
+clearCanvas("graph2");
+clearCanvas("graph3");
+
+// in python:
+// zipadee = zip(category_list, cellCounts, asymmLRs, asymmUDs, asymmROTs, colours)
+
+{% for category, cellCount, asymmLR, asymmUD, asymmROT, colour in zipadee %}
+    scatter("graph1", {{ asymmLR }}, {{ asymmUD }}, "{{ colour }}",
+            {{ mins.0 }}, {{ maxs.0 }}, {{ mins.1 }}, {{ maxs.1 }} 
+           );
+    scatter("graph2", {{ asymmUD }}, {{ asymmROT }}, "{{ colour }}",
+            {{ mins.1 }}, {{ maxs.1 }}, {{ mins.2 }}, {{ maxs.2 }} 
+           );
+    scatter("graph3", {{ asymmROT }}, {{ asymmLR }}, "{{ colour }}",
+            {{ mins.2 }}, {{ maxs.2 }}, {{ mins.0 }}, {{ maxs.0 }} 
+           );
+{% endfor %}
+
+function clearCanvas(canvasID) {
+    var graph = document.getElementById(canvasID);
+    graph.width = graph.width;
+}
+
+function scatter(canvasID, xdata, ydata, colour, xMin, xMax, yMin, yMax) {
+    var graph = document.getElementById(canvasID);
+    var g = graph.getContext("2d");
+    var xBuffer = graph.width/10;
+    var yBuffer = graph.height/10;
+    var width = graph.width - 2*xBuffer;
+    var height = graph.height - 2*yBuffer;
+
+    var xRange = xMax - xMin;
+    var yRange = yMax - yMin;
+
+    /* draw 10 tick marks */
+    var nTick = 10;
+    var XTickInterval = xRange*1.1/nTick;
+    var YTickInterval = yRange*1.1/nTick;
+    for (var i=0; i <= 10; i++) {
+        g.fillRect(xBuffer,yBuffer+height-height*i/nTick,5,1);
+        g.textAlign = "right"; 
+        g.textBaseline = "middle";
+        g.fillText(Math.floor(yMin + YTickInterval*i),xBuffer-3,yBuffer+height-height*i/nTick);
+
+        g.fillRect(xBuffer+width*i/nTick,yBuffer+height-5,1,5);
+        g.textAlign = "center";
+        g.textBaseline = "top";
+        g.fillText(Math.floor(xMin + XTickInterval*i),xBuffer+width*i/nTick,yBuffer+height);
+    }
+    g.strokeRect(xBuffer,yBuffer,width,height);
+
+    function plot_points(data_x, data_y, pencolor) {
+       /* scale the data to Canvas coordinates */
+       var xC = new Array(data_x.length);
+       var yC = new Array(data_y.length);
+
+       for (var i=0; i < data_x.length; i++) {
+           xC[i] = Math.floor(xBuffer + width*(data_x[i] - xMin)/xRange);
+           yC[i] = Math.floor(yBuffer+height - height*(data_y[i] - yMin)/yRange);
+       }
+
+       /* plot the points as small squares */
+       g.fillStyle = pencolor;
+
+       for (var i=0; i < data_x.length; i++) {
+           g.fillRect(xC[i]-3,yC[i]-3,7,7);
+       }
+       
+    }
+
+    plot_points(xdata, ydata, colour);
+}
+
+</script> 
+
+
+{% endblock %}
+
