@@ -29,3 +29,22 @@ def majorityNeighbour(nearestClass):
     categories, ind = np.unique(nearestClass, return_inverse=True)
     return categories[np.argmax(np.bincount(ind))]
 
+def accuracyTest(trainList, categories, K=5, method='Euclid_sq'):
+    # perform a leave-one-out test of the KNN method
+    predictions = []
+    confidences = []
+    score = 0.0
+    for ii, testPoint in enumerate(trainList):
+        testPointCat = categories[ii]
+        trainSet = trainList[:ii] + trainList[ii+1:]
+        trainSetCat = categories[:ii] + categories[ii+1:] 
+        dist_to_all = distToAll(trainSet, testPoint, 'Euclid_sq')
+        neighbours = nearestClass(dist_to_all,trainSetCat,K)
+        prediction = majorityNeighbour(neighbours)
+        predictions.append(prediction)
+        confidences.append(float(sum(neighbour==prediction for neighbour in neighbours))/len(neighbours))
+        if prediction == testPointCat:
+            score += 1.0
+    score /= len(categories)
+    return predictions, confidences, score
+

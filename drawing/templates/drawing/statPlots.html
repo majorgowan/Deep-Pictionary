@@ -72,12 +72,12 @@ function scatter(canvasID, xdata, ydata, colour, xMin, xMax, yMin, yMax) {
         g.fillRect(xBuffer,yBuffer+height-height*i/nTick,5,1);
         g.textAlign = "right"; 
         g.textBaseline = "middle";
-        g.fillText(Math.floor(yMin + YTickInterval*i),xBuffer-3,yBuffer+height-height*i/nTick);
+        g.fillText(Math.floor(10*(yMin + YTickInterval*i))/10.0,xBuffer-3,yBuffer+height-height*i/nTick);
 
         g.fillRect(xBuffer+width*i/nTick,yBuffer+height-5,1,5);
         g.textAlign = "center";
         g.textBaseline = "top";
-        g.fillText(Math.floor(xMin + XTickInterval*i),xBuffer+width*i/nTick,yBuffer+height);
+        g.fillText(Math.floor(10*(xMin + XTickInterval*i))/10.0,xBuffer+width*i/nTick,yBuffer+height);
     }
     g.strokeRect(xBuffer,yBuffer,width,height);
 

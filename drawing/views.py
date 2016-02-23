@@ -23,7 +23,7 @@ def chooseCategory(request):
 def predictCategory(request):
     image_string = request.POST['imageDataHidden']
 
-    prediction, confidence = predict_knn(image_string,[2,2], \
+    prediction, confidence = predict_knn(image_string,[5,5], K=9,\
             featureList=['asymmLR','asymmUD','asymmROT','cellCount'])
 
     print('I think it is a ' + prediction + '!!!')
@@ -46,6 +46,7 @@ def indicateCategory(request):
     return render(request, 'drawing/indicateCategory.html', context)
 
 def recordCategory(request):
+    from random import shuffle
     selected_choice = request.POST['submit']
     if selected_choice == 'Yes!!!':
         iwasright = True
@@ -62,8 +63,10 @@ def recordCategory(request):
         d.save()
     else:
         print('already have that one, mate!')
-    # collect last 9 of the same category 
-    last_9 = list(Drawing.objects.filter(category=selected_choice).order_by('-draw_date')[1:10].values_list('bitmap',flat=True))
+    # collect 9 other drawings of the same category 
+    last_9 = list(Drawing.objects.filter(category=selected_choice).order_by('-draw_date').values_list('bitmap',flat=True))
+    shuffle(last_9)
+    last_9 = last_9[1:10]
     # pass info to browser for final flourish
     context = {
             'selected_choice': selected_choice,
@@ -78,9 +81,27 @@ def drawingPad(request):
 
 # statistics
 def statPlots(request):
-    # plot the statistics for the different categories
-    ncell = [2,2]
+    ncell = [5,5]
     category_list = list(Category.objects.values_list('category_name',flat=True))
+
+    '''
+    # test algorithm on training set
+    print('accuracy test over training set:')
+    for KK in range(3,6):
+        predictions, categories, confidences, score = \
+                accuracyTest_knn(ncell, K=KK, featureList=['asymmLR','asymmUD','asymmROT','cellCount'])
+        # accuracy by category:
+        for category in category_list:
+            correct = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
+            incorrect = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
+            mean_conf = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
+            mean_conf /= (correct + incorrect) 
+            print('category: %s . . . %d out of %d -- acc %f, mean_conf %f' \
+                    % (category,correct,incorrect+correct,float(correct)/(correct+incorrect),mean_conf))
+        print('K: %d, accuracy: %f' % (KK,score))
+    '''
+
+    # plot the statistics for the different categories
     cellCounts = []
     asymmLRs = []
     asymmUDs = []
@@ -88,7 +109,7 @@ def statPlots(request):
     for cat in category_list:
         bitmapStringList = list(Drawing.objects.filter(category=cat).values_list('bitmap',flat=True))
         bitmapList = [features.strToListList(a) for a in bitmapStringList]
-        cellCount = [features.cellCount(a,ncell) for a in bitmapList]
+        cellCount = [features.cellCount(a,ncell,relative=True) for a in bitmapList]
         cellCounts.append(cellCount)
         
         feat = [features.applyStat(a,'asymmLR') for a in cellCount]
@@ -120,7 +141,7 @@ def statPlots(request):
 
 ###########################################
 # methods for prediction
-def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asymmROT']):
+def predict_knn(test_bitmap_string, ncell, K=5, featureList=['asymmLR','asymmUD','asymmROT']):
     # ncell [m,n]: break images into m x n blocks
     # featureList: list of strings
     #
@@ -129,9 +150,12 @@ def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asy
     # convert bitmap strings to lists of lists
     trainLoL = [features.strToListList(a) for a in bitmaps]
     testLoL = features.strToListList(test_bitmap_string)
+    # centre images
+    trainLoL = [features.centreArray(a) for a in trainLoL]
+    testLoL = features.centreArray(testLoL)
     # compute cell-block counts
-    blockTrain = [features.cellCount(a,ncell) for a in trainLoL]
-    blockTest = features.cellCount(testLoL,ncell)
+    blockTrain = [features.cellCount(a,ncell,relative=True) for a in trainLoL]
+    blockTest = features.cellCount(testLoL,ncell,relative=True)
     # compute requested features and construct feature LoL for knn
     featureLoL = []
     feature_test = []
@@ -157,9 +181,48 @@ def predict_knn(test_bitmap_string, ncell, featureList=['asymmLR','asymmUD','asy
 
     dist_to_all = knn.distToAll(featureLoL, feature_test, 'Euclid_sq')
     # print(zip(categories,dist_to_all))
-    neighbours = knn.nearestClass(dist_to_all,categories,K=5)
+    neighbours = knn.nearestClass(dist_to_all,categories,K)
     print(neighbours)
     prediction = knn.majorityNeighbour(neighbours)
     # confidence
     confidence = float(sum(neighbour==prediction for neighbour in neighbours))/len(neighbours)
     return prediction, confidence
+
+# test algorithm on training set
+def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT']):
+    # ncell [m,n]: break images into m x n blocks
+    # featureList: list of strings
+    #
+    # load list of categories
+    category_list = list(Category.objects.values_list('category_name',flat=True))
+    # load all bitmaps
+    bitmaps = list(Drawing.objects.values_list('bitmap',flat=True))
+    # convert bitmap strings to lists of lists
+    trainLoL = [features.strToListList(a) for a in bitmaps]
+    # centre images
+    trainLoL = [features.centreArray(a) for a in trainLoL]
+    # compute cell-block counts
+    blockTrain = [features.cellCount(a,ncell,relative=True) for a in trainLoL]
+    # compute requested features and construct feature LoL for knn
+    featureLoL = []
+    for statName in featureList:
+        if statName != 'cellCount':
+            feat = [features.applyStat(a,statName) for a in blockTrain]
+            featureLoL.append(feat)
+        else:
+            for cx in range(ncell[0]):
+                for cy in range(ncell[1]):
+                    feat = [a[cx][cy] for a in blockTrain]
+                    featureLoL.append(feat)
+
+    # transpose feature LoL:
+    featureLoL = map(list,zip(*featureLoL))
+    
+    # load list of categories from Drawing table
+    categories = list(Drawing.objects.values_list('category',flat=True))
+
+    # perform leave-one-out test:
+    predictions, confidences, score = knn.accuracyTest(featureLoL, categories, K=K, method='Euclid_sq')
+    #print('K=%d: accuracy: %f' % (K,score))
+    return predictions, categories, confidences, score
+

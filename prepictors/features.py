@@ -22,6 +22,42 @@ def strToListList(pixelString, rows=0):
         pixelArray.append([int(x) for x in pixelString[j*nx:(j+1)*nx]])
     return pixelArray
 
+def shiftPixelArray(pixelArray, shift):
+    from copy import deepcopy
+    shiftedArray = deepcopy(pixelArray)
+    us, ls = shift
+    if ls != 0:
+        shiftedArray = [a[ls:] + a[:ls] for a in shiftedArray]
+    if us != 0:
+        shiftedArray = shiftedArray[us:] + shiftedArray[:us]
+    return shiftedArray
+
+def centreArray(pixelArray):
+    def first_one(a):
+        for i,b in enumerate(a):
+            if b>0:
+                return i
+        return len(a)
+    def last_one(a):
+        for i,b in enumerate(reversed(a)):
+            if b>0:
+                return i
+        return len(a)
+    # find left-most, right-most, top-most and bottom-most 1's
+    maxes = [max(a) for a in pixelArray]
+    top = first_one(maxes)
+    bottom = last_one(maxes)
+    left = min([first_one(a) for a in pixelArray])
+    right = min([last_one(a) for a in pixelArray])
+    #print('top %d, bottom %d, left %d, right %d' % (top, bottom, left, right)) 
+    # shift pixelArray accordingly to centre image
+    upshift = (top-bottom)/2
+    leftshift = (left-right)/2
+    #print('upshift: ' + str(upshift))
+    #print('leftshift: ' + str(leftshift))
+    return shiftPixelArray(pixelArray, shift=(upshift,leftshift))
+
+## Extract symmetry characteristics
 def flipLR(pixelArray):
     # return a left-right mirror of original image
     from copy import deepcopy
@@ -30,7 +66,7 @@ def flipLR(pixelArray):
     # reverse each inner list
     for row in newArray:
         row.reverse()
-    return(newArray)
+    return newArray
 
 def flipUD(pixelArray):
     # return a top-bottom mirror of original image
@@ -39,7 +75,7 @@ def flipUD(pixelArray):
     newArray = deepcopy(pixelArray)
     # reverse outer list
     newArray.reverse()
-    return(newArray)
+    return newArray
 
 def rotate(pixelArray,n=90):
     # based on Artem Rudenko example
@@ -53,11 +89,14 @@ def rotate(pixelArray,n=90):
     newArray = deepcopy(pixelArray)
     for rot in range(nrot):
         newArray = zip(*newArray)[::-1]
-    return(newArray)
+    return newArray
 
-def cellCount(pixelArray,ncell=[2,2]):
+def cellCount(pixelArray,ncell=[2,2],relative=False):
     import numpy as np
     arr = np.array(pixelArray)
+    if relative:
+        total_ones = sum(sum(arr))
+        arr = np.multiply(float(1.0/total_ones),arr)
     # check if ncell components divide array evenly
     shap = np.shape(arr)
     if sum(shap[i] % ncell[i] for i in (0,1)) > 0:

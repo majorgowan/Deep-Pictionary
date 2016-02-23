@@ -12,7 +12,7 @@
         <canvas id="new_graph" class="graph" width = 240 height = 240></canvas>
         {% if last_9 %}
             <div class=mini_graphs>
-                <p>Last 9 {{ selected_choice }}s . . .</p>
+                <p>Some other {{ selected_choice }}s . . .</p>
                 {% for mini in last_9 %}
                     <canvas id="mini_graph_{{forloop.counter}}" class="mini_graph" width=60 height=60></canvas>
                 {% endfor %}
