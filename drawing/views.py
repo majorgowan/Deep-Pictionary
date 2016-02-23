@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .models import Category, Drawing
-from prepictors import features
+from prepictors import features, sampling
 import prepictors.knn.knn as knn
 
 # Create your views here.
@@ -24,7 +24,7 @@ def predictCategory(request):
     image_string = request.POST['imageDataHidden']
 
     prediction, confidence = predict_knn(image_string,[5,5], K=9,\
-            featureList=['asymmLR','asymmUD','asymmROT','cellCount'])
+            featureList=['asymmLR','asymmUD','asymmROT','cellCount'], equally=True)
 
     print('I think it is a ' + prediction + '!!!')
     print('(confidence %d)' % int(100*confidence))
@@ -84,23 +84,6 @@ def statPlots(request):
     ncell = [5,5]
     category_list = list(Category.objects.values_list('category_name',flat=True))
 
-    '''
-    # test algorithm on training set
-    print('accuracy test over training set:')
-    for KK in range(3,6):
-        predictions, categories, confidences, score = \
-                accuracyTest_knn(ncell, K=KK, featureList=['asymmLR','asymmUD','asymmROT','cellCount'])
-        # accuracy by category:
-        for category in category_list:
-            correct = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
-            incorrect = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
-            mean_conf = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
-            mean_conf /= (correct + incorrect) 
-            print('category: %s . . . %d out of %d -- acc %f, mean_conf %f' \
-                    % (category,correct,incorrect+correct,float(correct)/(correct+incorrect),mean_conf))
-        print('K: %d, accuracy: %f' % (KK,score))
-    '''
-
     # plot the statistics for the different categories
     cellCounts = []
     asymmLRs = []
@@ -139,17 +122,55 @@ def statPlots(request):
             }
     return render(request, 'drawing/statPlots.html', context)
 
+def statTests(request):
+    ncell = [5,5]
+    category_list = list(Category.objects.values_list('category_name',flat=True))
+
+    # test algorithm on training set
+    print('accuracy test over training set:')
+    for KK in range(1,6):
+        predictions, categories, confidences, score = \
+                accuracyTest_knn(ncell, K=KK, \
+                featureList=['asymmLR','asymmUD','asymmROT','cellCount'], \
+                equally=True)
+        # accuracy by category:
+        for category in category_list:
+            correct = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
+            incorrect = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
+            mean_conf = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
+            mean_conf /= (correct + incorrect) 
+            print('category: %s . . . %d out of %d -- acc %f, mean_conf %f' \
+                    % (category,correct,incorrect+correct,float(correct)/(correct+incorrect),mean_conf))
+        print('K: %d, accuracy: %f' % (KK,score))
+
+    context = {
+            'ncell': ncell,
+            'category_list': category_list,
+            }
+    return render(request, 'drawing/statTests.html', context)
+
 ###########################################
 # methods for prediction
-def predict_knn(test_bitmap_string, ncell, K=5, featureList=['asymmLR','asymmUD','asymmROT']):
+def predict_knn(test_bitmap_string, ncell, K=5, \
+        featureList=['asymmLR','asymmUD','asymmROT'], equally=False):
     # ncell [m,n]: break images into m x n blocks
     # featureList: list of strings
     #
     # load all bitmaps
     bitmaps = list(Drawing.objects.values_list('bitmap',flat=True))
+    # load corresponding list of categories
+    categories = list(Drawing.objects.values_list('category',flat=True))
+    #
+    if equally:
+        # sample equal number of each category
+        indices = sampling.sampleEqually(categories)
+        bitmaps = [bitmaps[ii] for ii in indices]
+        categories = [categories[ii] for ii in indices]
+    #
     # convert bitmap strings to lists of lists
     trainLoL = [features.strToListList(a) for a in bitmaps]
     testLoL = features.strToListList(test_bitmap_string)
+    #
     # centre images
     trainLoL = [features.centreArray(a) for a in trainLoL]
     testLoL = features.centreArray(testLoL)
@@ -176,9 +197,6 @@ def predict_knn(test_bitmap_string, ncell, K=5, featureList=['asymmLR','asymmUD'
     # transpose feature LoL:
     featureLoL = map(list,zip(*featureLoL))
     
-    # load list of categories from Drawing table
-    categories = list(Drawing.objects.values_list('category',flat=True))
-
     dist_to_all = knn.distToAll(featureLoL, feature_test, 'Euclid_sq')
     # print(zip(categories,dist_to_all))
     neighbours = knn.nearestClass(dist_to_all,categories,K)
@@ -189,7 +207,7 @@ def predict_knn(test_bitmap_string, ncell, K=5, featureList=['asymmLR','asymmUD'
     return prediction, confidence
 
 # test algorithm on training set
-def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT']):
+def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT'],equally=False):
     # ncell [m,n]: break images into m x n blocks
     # featureList: list of strings
     #
@@ -197,6 +215,15 @@ def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT']):
     category_list = list(Category.objects.values_list('category_name',flat=True))
     # load all bitmaps
     bitmaps = list(Drawing.objects.values_list('bitmap',flat=True))
+    # load corresponding list of categories
+    categories = list(Drawing.objects.values_list('category',flat=True))
+    #
+    if equally:
+        # sample equal number of each category
+        indices = sampling.sampleEqually(categories)
+        bitmaps = [bitmaps[ii] for ii in indices]
+        categories = [categories[ii] for ii in indices]
+
     # convert bitmap strings to lists of lists
     trainLoL = [features.strToListList(a) for a in bitmaps]
     # centre images
@@ -218,9 +245,6 @@ def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT']):
     # transpose feature LoL:
     featureLoL = map(list,zip(*featureLoL))
     
-    # load list of categories from Drawing table
-    categories = list(Drawing.objects.values_list('category',flat=True))
-
     # perform leave-one-out test:
     predictions, confidences, score = knn.accuracyTest(featureLoL, categories, K=K, method='Euclid_sq')
     #print('K=%d: accuracy: %f' % (K,score))

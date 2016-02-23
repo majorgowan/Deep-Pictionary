@@ -11,4 +11,5 @@ urlpatterns = [
         url(r'^indicate$', views.indicateCategory, name='indicateCategory'),
         url(r'^record$', views.recordCategory, name='recordCategory'),
         url(r'^statPlots$', views.statPlots, name='statPlots'),
+        url(r'^statTests$', views.statTests, name='statTests'),
         ]
