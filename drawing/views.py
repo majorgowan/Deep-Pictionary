@@ -123,29 +123,46 @@ def statPlots(request):
     return render(request, 'drawing/statPlots.html', context)
 
 def statTests(request):
-    ncell = [5,5]
+    import math
+
+    ncells = [[2,2],[3,3],[5,5],[6,6]]
+    #ncells = [[2,2],[3,3]]
     category_list = list(Category.objects.values_list('category_name',flat=True))
+    Ks = range(3,7)
+    #Ks = range(3,5)
 
     # test algorithm on training set
-    print('accuracy test over training set:')
-    for KK in range(1,6):
-        predictions, categories, confidences, score = \
-                accuracyTest_knn(ncell, K=KK, \
-                featureList=['asymmLR','asymmUD','asymmROT','cellCount'], \
-                equally=True)
-        # accuracy by category:
-        for category in category_list:
-            correct = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
-            incorrect = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
-            mean_conf = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
-            mean_conf /= (correct + incorrect) 
-            print('category: %s . . . %d out of %d -- acc %f, mean_conf %f' \
-                    % (category,correct,incorrect+correct,float(correct)/(correct+incorrect),mean_conf))
-        print('K: %d, accuracy: %f' % (KK,score))
+    middle_zips = []
+    for ncell in ncells:
+        print('accuracy test over training set:')
+        scores = []
+        inner_zips = []
+        for KK in Ks:
+            predictions, categories, confidences, score = \
+                    accuracyTest_knn(ncell, K=KK, \
+                    featureList=['asymmLR','asymmUD','asymmROT','cellCount'], \
+                    equally=True)
+            # accuracy by category:
+            correct = []
+            total = []
+            mean_conf = []
+            for category in category_list:
+                corr = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
+                incorr = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
+                mc = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
+                mc = math.floor(1000*mc/(corr + incorr))/10
+                correct.append(corr)
+                total.append(corr+incorr)
+                mean_conf.append(mc)
+            inner_zips.append(zip(category_list,correct,total,mean_conf))
+            scores.append(math.floor(1000*score)/10)
+            print('K: %d, accuracy: %f' % (KK,score))
+        middle_zips.append(zip(Ks,scores,inner_zips))
+
+    zipadee = zip(ncells, middle_zips)
 
     context = {
-            'ncell': ncell,
-            'category_list': category_list,
+            'zipadee': zipadee,
             }
     return render(request, 'drawing/statTests.html', context)
 

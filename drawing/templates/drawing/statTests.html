@@ -2,6 +2,46 @@
 
 {% block content %}
     <div class=centre_div>
+        {% for ncell, middle_zip in zipadee %}
+            <div class="table_title">
+                Test {{ forloop.counter }}: Bitmaps divided into {{ ncell.0 }} x {{ ncell.1 }} blocks
+            </div>
+            <table>
+                {% for K, score, inner_zip in middle_zip %}
+                    <tr>
+                        <th>K</th>
+                        <th>Accuracy by category</th>
+                        <th>Total Accuracy</th>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;&nbsp;
+                            {{ K }}
+                            &nbsp;&nbsp;&nbsp;
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Correct</th>
+                                    <th>Out of</th>
+                                    <th>Mean conf</th>
+                                </tr>
+                                {% for category, correct, total, mean_conf in inner_zip %}
+                                    <tr>
+                                        <td>{{ category }}</td>
+                                        <td>{{ correct }}</td>
+                                        <td>{{ total }}</td>
+                                        <td>{{ mean_conf }}%</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                        <td>{{ score }}%</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <br><br>
+        {% endfor %}
     </div>
 {% endblock %}
 

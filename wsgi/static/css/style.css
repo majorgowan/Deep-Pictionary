@@ -21,7 +21,7 @@ h2 {
 .nav ul {
     list-style: none;
     background-color: #444;
-    text-align: center;
+    text-align: left;
     padding: 0;
     margin: 0;
 }
@@ -46,31 +46,40 @@ h2 {
     color: #444;
     cursor: default;
 }
+.title_string {
+    float: right;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.4em;
+    font-weight: bold;
+    line-height: 50px;
+    height: 50px;
+    margin-right: 0.5em;
+    color: #fff;
+}   
 @media screen and (min-width: 600px) {
     .nav li {
-        width: 120px;
         border-bottom: none;
         height: 50px;
         line-height: 50px;
         font-size: 1.4em;
+        text-align: center;
     }
-
     /* Option 1 - Display Inline */
     .nav li {
         display: inline-block;
-        margin-right: -4px;
+        width: 5em;
     }
     /* Options 2 - Float
     .nav li {
-        float: left;
+    float: left;
     }
     .nav ul {
-        overflow: auto;
-        width: 600px;
-        margin: 0 auto;
+    overflow: auto;
+    width: 600px;
+    margin: 0 auto;
     }
     .nav {
-        background-color: #444;
+    background-color: #444;
     }  */
 }
 
@@ -83,7 +92,7 @@ h2 {
 .menu p {
     margin: 0;
     margin-left: 1em;
-    text-indent: -1em;
+    /*text-indent: -1em;*/
 }
 .menu ul {
     width: 80%;
@@ -114,6 +123,29 @@ h2 {
     font-size: 1.5em;
 }
 
+/* table formatting */
+.centre_div table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.centre_div th, td {
+    text-align: center;
+    padding: 8px;
+}
+.centre_div tr {
+    background-color: #f2f2f2;
+}
+.centre_div th {
+    background-color: #377ba8; 
+    color: white;
+}
+.centre_div td td:nth-child(1), td th:nth-child(1) {
+    text-align: left;
+}
+.centre_div table table th, table table td {
+    font-size: 0.8em;
+}
+
 .page { 
     margin: 2em auto; 
     width: 80%; 
@@ -124,14 +156,6 @@ h2 {
 }
 .clear {
     clear: both;
-}
-
-.metanav { 
-    text-align: right; 
-    font-size: 0.8em; 
-    padding: 0.3em;
-    margin-bottom: 1em; 
-    background: #fafafa; 
 }
 
 .graph {

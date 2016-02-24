@@ -7,15 +7,18 @@
         <link rel="stylesheet" href="{% static 'css/style.css' %}">
     </head>
     <body>
+        <!--
         <div class="page-header">
             <h1><a href="{% url 'drawing:chooseCategory' %}">Deep Pictionary</a></h1>
         </div>
+        -->
         {% block nav %}
             <div class="nav">
                 <ul>
                     <li>{% block nav-play %}<a href="{% url 'drawing:chooseCategory' %}">Play</a>{% endblock %}</li>
                     <li>{% block nav-graphs %}<a href="{% url 'drawing:statPlots' %}">Graphs</a>{% endblock %}</li>
                     <li>{% block nav-test %}<a href="{% url 'drawing:statTests' %}">Tests</a>{% endblock %}</li>
+                    <div class='title_string'>Deep Pictionary</div>
                 </ul>
             </div>
         {% endblock %}
