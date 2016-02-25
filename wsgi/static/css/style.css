@@ -122,6 +122,12 @@ h2 {
     margin-top: 1em;
     font-size: 1.5em;
 }
+.centre_div p {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-left: 1em;
+}
 
 /* table formatting */
 .centre_div table {
@@ -161,6 +167,11 @@ h2 {
 .graph {
     display: inline-block;
     border: 2px solid #ccc;
+}
+.graph_box {
+    display: inline-block;
+    width: 360px;
+    margin: 10px auto;
 }
 
 /* for recordDrawing screen */

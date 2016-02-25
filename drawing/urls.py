@@ -13,4 +13,5 @@ urlpatterns = [
         url(r'^browse$', views.browse, name='browse'),
         url(r'^statPlots$', views.statPlots, name='statPlots'),
         url(r'^statTests$', views.statTests, name='statTests'),
+        url(r'^silly$', views.silly, name='silly'),
         ]

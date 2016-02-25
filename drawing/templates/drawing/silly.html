@@ -1,0 +1,71 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    <div class=centre_div>
+        <p>Average drawing by category</p>
+        {% for category, average in zipadee %}
+            <div class=graph_box>
+                <canvas id="graph_{{forloop.counter}}" class="graph" width = 240 height = 240></canvas>
+                <div class=category_name>
+                    {{category}}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+<script type='text/javascript'>
+
+{% for category, average in zipadee %}
+    drawCanvas(document.getElementById("graph_{{forloop.counter}}"),{{ average }},8);
+{% endfor %}
+
+// adapted from from Hudson, JavaScript Creativity
+function drawCanvas(graph, pixelArray, lineWidth) {
+    clearCanvas();
+    var g = graph.getContext('2d');
+    var width = graph.width;
+    var height = graph.height;
+
+    clearCanvas();
+    drawImage();
+
+    function preventDefault(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        return false;
+    }
+
+    function drawImage() {
+
+        // parse pixelArray and draw rectangles where necessary
+        for (var i = 0; i < 900; i++) {
+            col = Math.floor(i/30);
+            row = i - 30*col;
+
+            // get colour based on pixelArray value at index i
+            colour = getColour(pixelArray[i]);
+            g.strokeStyle = colour;
+            g.fillStyle = colour;
+
+            g.fillRect(lineWidth*row,lineWidth*col,lineWidth,lineWidth);
+        }
+    }
+
+    function getColour(val) {
+        // from starcoverflow.com/questions/16179713/converting-float-values-to-a-grayscale-hex-color-value
+        var colour_part_dec = 255 * (1 - val);
+        var colour_part_hex = Number(parseInt( colour_part_dec, 10)).toString(16);
+        return "#" + colour_part_hex + colour_part_hex + colour_part_hex;
+    }
+
+    function clearCanvas() {
+        graph.width = graph.width;   /* "magic" to clear graph or something */
+    }
+
+}
+
+</script>
+
+{% endblock %}
+

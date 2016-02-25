@@ -186,6 +186,32 @@ def statTests(request):
             }
     return render(request, 'drawing/statTests.html', context)
 
+# random silliness
+def silly(request):
+
+    category_list = list(Category.objects.values_list('category_name',flat=True))
+
+    averages = []
+
+    for cat in category_list:
+        bitmapStringList = list(Drawing.objects.filter(category=cat).values_list('bitmap',flat=True))
+        bitmapList = [features.strToListList(a) for a in bitmapStringList]
+        # centre images
+        bitmapList = [features.centreArray(a) for a in bitmapList]
+        # flatten bitmapList
+        bitmapListFlat = [[a for row in bitmap for a in row] for bitmap in bitmapList]
+
+        # calculate average of bitmaps for each category
+        sumBitmap = [sum(a[ii] for a in bitmapListFlat) for ii in xrange(len(bitmapListFlat[0]))]
+        averages.append([float(a)/max(sumBitmap) for a in sumBitmap])
+
+    zipadee = zip(category_list, averages)
+
+    context = {
+            'zipadee': zipadee,
+            }
+    return render(request, 'drawing/silly.html', context)
+
 ###########################################
 # methods for prediction
 def predict_knn(test_bitmap_string, ncell, K=5, \
