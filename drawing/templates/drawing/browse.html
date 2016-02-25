@@ -1,0 +1,75 @@
+{% extends 'drawing/base.html' %}
+
+{% block content %}
+    <div class=centre_div>
+        {% for drawing, category, predicted in zipadee %}
+            <div class=mid_graph_box>
+                <canvas id="mid_graph_{{forloop.counter}}" class="mid_graph" width=120 height=120></canvas>
+                <div class=category_name>
+                    {{ category }}
+                </div>
+                <div class=category_name>
+                    my guess: 
+                    {% if predicted == 'Default' %}
+                            {{ predicted }}
+                    {% elif predicted == category %}
+                        <span class="correct_category">
+                            {{ predicted }}
+                        </span>
+                    {% else %}
+                        <span class="incorrect_category">
+                            {{ predicted }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+<script type='text/javascript'>
+
+{% for drawing, category, predicted in zipadee %}
+    drawCanvas(document.getElementById("mid_graph_{{forloop.counter}}"),"{{ drawing }}",4);
+{% endfor %}
+
+// adapted from from Hudson, JavaScript Creativity
+function drawCanvas(graph, pixelString, lineWidth) {
+    graph.width = graph.width;   /* "magic" to clear graph or something */
+    var g = graph.getContext('2d');
+    var width = graph.width;
+    var height = graph.height;
+
+    clearCanvas();
+    drawImage();
+
+    function preventDefault(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        return false;
+    }
+
+    function drawImage() {
+        g.strokeStyle = "#000000";
+        g.fillStyle = "#000000";
+
+        // parse pixelString and draw rectangles where necessary
+        for (var i = 0; i < 900; i++) {
+            col = Math.floor(i/30);
+            row = i - 30*col;
+            if (pixelString.charAt(i) == '1') {
+                g.fillRect(lineWidth*row,lineWidth*col,lineWidth,lineWidth);
+            }
+        }
+    }
+
+    function clearCanvas() {
+        graph.width = graph.width;   /* "magic" to clear graph or something */
+    }
+
+}
+
+</script>
+
+{% endblock %}
+
