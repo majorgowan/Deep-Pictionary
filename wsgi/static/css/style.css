@@ -163,6 +163,7 @@ h2 {
     border: 2px solid #ccc;
 }
 
+/* for recordDrawing screen */
 .mini_graphs {
     display: inline-block;
     width: 300px;
@@ -172,6 +173,27 @@ h2 {
     padding: 4px;
     border: 2px solid #ccc;
 }
+
+/* for browse screen */
+.mid_graph_box {
+    display: inline-block;
+    width: 180px;
+    margin: 4px auto;
+    border: 2px solid #ccc;
+}
+.mid_graph {
+    padding: -2px;
+}
+.category_name {
+    text-align: center;
+}
+.correct_category {
+    color: green;
+}
+.incorrect_category {
+    color: red;
+}
+
 
 .padButton {
     background-color: rgba(0,0,0,0.6);

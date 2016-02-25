@@ -23,7 +23,7 @@ def chooseCategory(request):
 def predictCategory(request):
     image_string = request.POST['imageDataHidden']
 
-    prediction, confidence = predict_knn(image_string,[5,5], K=9,\
+    prediction, confidence = predict_knn(image_string,[2,2], K=4,\
             featureList=['asymmLR','asymmUD','asymmROT','cellCount'], equally=True)
 
     print('I think it is a ' + prediction + '!!!')
@@ -38,8 +38,10 @@ def predictCategory(request):
 def indicateCategory(request):
     category_list = list(Category.objects.values_list('category_name',flat=True))
     image_string = request.POST['imageDataHidden']
+    predicted_choice = request.POST['predicted']
 
     context = {
+            'prediction': predicted_choice,
             'category_list': category_list,
             'image_string': image_string,
             }
@@ -51,15 +53,18 @@ def recordCategory(request):
     if selected_choice == 'Yes!!!':
         iwasright = True
         selected_choice = request.POST['selected']
+        predicted_choice = selected_choice
     else:
         iwasright = False
+        predicted_choice = request.POST['predicted']
     # print(selected_choice)
     image_string = request.POST['imageDataHidden']
     draw_date = timezone.now()
     # if drawing is new, update database
     all_the_category = Drawing.objects.filter(category=selected_choice).values_list('bitmap',flat=True)
     if image_string not in all_the_category:
-        d = Drawing(bitmap=image_string, category=selected_choice, draw_date=draw_date)
+        d = Drawing(bitmap=image_string, category=selected_choice, \
+                    predicted=predicted_choice, draw_date=draw_date)
         d.save()
     else:
         print('already have that one, mate!')
@@ -78,6 +83,21 @@ def recordCategory(request):
 
 def drawingPad(request):
     return render(request, 'drawing/drawingPad.html')
+
+# browse other drawings
+def browse(request):
+
+    bitmapStringList = list(Drawing.objects.values_list('bitmap',flat=True))
+    categoryList = list(Drawing.objects.values_list('category',flat=True))
+    predictedList = list(Drawing.objects.values_list('predicted',flat=True))
+
+    zipadee = zip(bitmapStringList, categoryList, predictedList)
+    zipadee.reverse()
+
+    context = {
+            'zipadee': zipadee,
+            }
+    return render(request, 'drawing/browse.html', context)
 
 # statistics
 def statPlots(request):
@@ -266,4 +286,68 @@ def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT'],equ
     predictions, confidences, score = knn.accuracyTest(featureLoL, categories, K=K, method='Euclid_sq')
     #print('K=%d: accuracy: %f' % (K,score))
     return predictions, categories, confidences, score
+
+# fill in predictions for old drawings
+def retroPredict_knn(ncell, K=5, \
+        featureList=['asymmLR','asymmUD','aymmROT'],equally=False):
+    # ncell [m,n]: break images into m x n blocks
+    # featureList: list of strings
+    #
+    # load all bitmaps with missing prediction field
+    test_bitmaps = list(Drawing.objects.filter(predicted='Default').values_list('bitmap',flat=True))
+    # load list of category names
+    category_list = list(Category.objects.values_list('category_name',flat=True))
+
+    for test_bitmap_string in test_bitmaps:
+        # load all bitmaps leaving out test_string
+        bitmaps = list(Drawing.objects.exclude(bitmap=test_bitmap_string).values_list('bitmap',flat=True))
+        # load corresponding list of categories leaving out test_string
+        categories = list(Drawing.objects.exclude(bitmap=test_bitmap_string).values_list('category',flat=True))
+        #
+        if equally:
+            # sample equal number of each category
+            indices = sampling.sampleEqually(categories)
+            bitmaps = [bitmaps[ii] for ii in indices]
+            categories = [categories[ii] for ii in indices]
+        #
+        # convert bitmap strings to lists of lists
+        trainLoL = [features.strToListList(a) for a in bitmaps]
+        testLoL = features.strToListList(test_bitmap_string)
+        #
+        # centre images
+        trainLoL = [features.centreArray(a) for a in trainLoL]
+        testLoL = features.centreArray(testLoL)
+        # compute cell-block counts
+        blockTrain = [features.cellCount(a,ncell,relative=True) for a in trainLoL]
+        blockTest = features.cellCount(testLoL,ncell,relative=True)
+        # compute requested features and construct feature LoL for knn
+        featureLoL = []
+        feature_test = []
+        for statName in featureList:
+            if statName != 'cellCount':
+                feat = [features.applyStat(a,statName) for a in blockTrain]
+                featureLoL.append(feat)
+                feat_test = features.applyStat(blockTest,statName)
+                feature_test.append(feat_test)
+            else:
+                for cx in range(ncell[0]):
+                    for cy in range(ncell[1]):
+                        feat = [a[cx][cy] for a in blockTrain]
+                        featureLoL.append(feat)
+                        feat_test = blockTest[cx][cy]
+                        feature_test.append(feat_test)
+
+        # transpose feature LoL:
+        featureLoL = map(list,zip(*featureLoL))
+        
+        dist_to_all = knn.distToAll(featureLoL, feature_test, 'Euclid_sq')
+        # print(zip(categories,dist_to_all))
+        neighbours = knn.nearestClass(dist_to_all,categories,K)
+        print(neighbours)
+        prediction = knn.majorityNeighbour(neighbours)
+
+        # update database with prediction
+        d = Drawing.objects.get(bitmap=test_bitmap_string)
+        d.predicted = prediction
+        d.save()
 

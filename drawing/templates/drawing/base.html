@@ -16,6 +16,7 @@
             <div class="nav">
                 <ul>
                     <li>{% block nav-play %}<a href="{% url 'drawing:chooseCategory' %}">Play</a>{% endblock %}</li>
+                    <li>{% block nav-browse %}<a href="{% url 'drawing:browse' %}">Browse</a>{% endblock %}</li>
                     <li>{% block nav-graphs %}<a href="{% url 'drawing:statPlots' %}">Graphs</a>{% endblock %}</li>
                     <li>{% block nav-test %}<a href="{% url 'drawing:statTests' %}">Tests</a>{% endblock %}</li>
                     <div class='title_string'>Deep Pictionary</div>

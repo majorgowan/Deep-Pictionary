@@ -6,6 +6,7 @@ from django.db import models
 class Drawing(models.Model):
     bitmap = models.CharField(max_length=900)
     category = models.CharField(max_length=20)
+    predicted = models.CharField(max_length=20)
     draw_date = models.DateTimeField('date of drawing')
 
     def __str__(self):

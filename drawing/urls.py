@@ -10,6 +10,7 @@ urlpatterns = [
         url(r'^predict$', views.predictCategory, name='predictCategory'),
         url(r'^indicate$', views.indicateCategory, name='indicateCategory'),
         url(r'^record$', views.recordCategory, name='recordCategory'),
+        url(r'^browse$', views.browse, name='browse'),
         url(r'^statPlots$', views.statPlots, name='statPlots'),
         url(r'^statTests$', views.statTests, name='statTests'),
         ]
