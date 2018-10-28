@@ -204,6 +204,10 @@ h2 {
 .incorrect_category {
     color: red;
 }
+.draw_date {
+    font-size: small;
+    font-style: italic;
+}
 
 
 .padButton {

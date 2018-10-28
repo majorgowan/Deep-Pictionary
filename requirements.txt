@@ -1,4 +1,6 @@
-Django==1.9.2
-argparse==1.2.1
-numpy==1.10.4
-wsgiref==0.1.2
+django
+django-heroku
+numpy
+psycopg2-binary
+dj-database-url
+gunicorn

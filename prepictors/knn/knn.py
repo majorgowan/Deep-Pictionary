@@ -1,5 +1,7 @@
+import math
+import numpy as np
+
 def distance(p1, p2, method='Euclid_sq'):
-    import math
     if len(p1) != len(p2):
         print('distance error: vectors of different lengths')
         return -1
@@ -20,12 +22,10 @@ def distToAll(trainList, testVec, method='Euclid_sq'):
 
 def nearestClass(distToAll,trainClass,K=5):
     # return classes of nearest K points in training set to the test point
-    import numpy as np
     ind = np.argsort(distToAll)[:K]
     return [trainClass[i] for i in ind]
 
 def majorityNeighbour(nearestClass):
-    import numpy as np
     categories, ind = np.unique(nearestClass, return_inverse=True)
     return categories[np.argmax(np.bincount(ind))]
 

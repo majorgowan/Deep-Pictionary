@@ -1,12 +1,10 @@
-from __future__ import unicode_literals
-
 from django.db import models
 
 # Create your models here.
 class Drawing(models.Model):
     bitmap = models.CharField(max_length=900)
     category = models.CharField(max_length=20)
-    predicted = models.CharField(max_length=20)
+    predicted = models.CharField(max_length=20, default="none")
     draw_date = models.DateTimeField('date of drawing')
 
     def __str__(self):
@@ -17,4 +15,3 @@ class Category(models.Model):
 
     def __str__(self):
         return self.category_name
-

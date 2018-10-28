@@ -1,3 +1,5 @@
+import random
+
 def partition(categories):
     # partition list of categorical data into homogeneous subsets
     #
@@ -20,7 +22,6 @@ def sampleEqually(categories, nsamp=None):
     #
     # returns list of indices
     #
-    import random
     #
     cat_names, subsets = partition(categories)
     #
@@ -41,7 +42,6 @@ def sampleSplit(categories, splitFraction):
     #
     # returns list of indices
     #
-    import random
     #
     cat_names, subsets = partition(categories)
     #

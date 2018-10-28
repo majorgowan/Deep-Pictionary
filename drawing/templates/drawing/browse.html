@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class=centre_div>
-        {% for drawing, category, predicted in zipadee %}
+        {% for drawing, category, predicted, date in zipadee %}
             <div class=mid_graph_box>
                 <canvas id="mid_graph_{{forloop.counter}}" class="mid_graph" width=120 height=120></canvas>
                 <div class=category_name>
@@ -22,13 +22,16 @@
                         </span>
                     {% endif %}
                 </div>
+                <div class="draw_date">
+                    {{ date }}
+                </div>
             </div>
         {% endfor %}
     </div>
 
 <script type='text/javascript'>
 
-{% for drawing, category, predicted in zipadee %}
+{% for drawing, category, predicted, date in zipadee %}
     drawCanvas(document.getElementById("mid_graph_{{forloop.counter}}"),"{{ drawing }}",4);
 {% endfor %}
 

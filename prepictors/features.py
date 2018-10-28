@@ -1,5 +1,8 @@
+import math
+import numpy as np
+from copy import deepcopy
+
 def strToListList(pixelString, rows=0):
-    import math
     n = len(pixelString)
     if rows==0:
         nx = math.sqrt(n)
@@ -23,7 +26,6 @@ def strToListList(pixelString, rows=0):
     return pixelArray
 
 def shiftPixelArray(pixelArray, shift):
-    from copy import deepcopy
     shiftedArray = deepcopy(pixelArray)
     us, ls = shift
     if ls != 0:
@@ -51,8 +53,8 @@ def centreArray(pixelArray):
     right = min([last_one(a) for a in pixelArray])
     #print('top %d, bottom %d, left %d, right %d' % (top, bottom, left, right)) 
     # shift pixelArray accordingly to centre image
-    upshift = (top-bottom)/2
-    leftshift = (left-right)/2
+    upshift = int((top-bottom)/2)
+    leftshift = int((left-right)/2)
     #print('upshift: ' + str(upshift))
     #print('leftshift: ' + str(leftshift))
     return shiftPixelArray(pixelArray, shift=(upshift,leftshift))
@@ -60,7 +62,6 @@ def centreArray(pixelArray):
 ## Extract symmetry characteristics
 def flipLR(pixelArray):
     # return a left-right mirror of original image
-    from copy import deepcopy
     # make a deep copy of original array
     newArray = deepcopy(pixelArray)
     # reverse each inner list
@@ -70,7 +71,6 @@ def flipLR(pixelArray):
 
 def flipUD(pixelArray):
     # return a top-bottom mirror of original image
-    from copy import deepcopy
     # make a deep copy of original array
     newArray = deepcopy(pixelArray)
     # reverse outer list
@@ -79,20 +79,18 @@ def flipUD(pixelArray):
 
 def rotate(pixelArray,n=90):
     # based on Artem Rudenko example
-    from copy import deepcopy
     # return a copy of original image counter-clockwise-rotated by n degrees
     if n % 90 != 0:
         print('rotate error: rotation must be multiple of 90 degrees')
         return -1
-    nrot = (n / 90) % 4
+    nrot = int(n / 90) % 4
     # make a deep copy of original array
     newArray = deepcopy(pixelArray)
     for rot in range(nrot):
-        newArray = zip(*newArray)[::-1]
+        newArray = list(zip(*newArray))[::-1]
     return newArray
 
 def cellCount(pixelArray,ncell=[2,2],relative=False):
-    import numpy as np
     arr = np.array(pixelArray)
     if relative:
         total_ones = sum(sum(arr))
@@ -102,8 +100,8 @@ def cellCount(pixelArray,ncell=[2,2],relative=False):
     if sum(shap[i] % ncell[i] for i in (0,1)) > 0:
         print('cellCount error: split does not divide array evenly')
         return -1
-    xsize = shap[0]/ncell[0]
-    ysize = shap[1]/ncell[1]
+    xsize = int(shap[0]/ncell[0])
+    ysize = int(shap[1]/ncell[1])
     counts = []
     for i in range(ncell[0]):
         rowCounts = []
@@ -113,16 +111,13 @@ def cellCount(pixelArray,ncell=[2,2],relative=False):
     return counts
 
 def asymmLR(pixelArray):
-    import numpy as np
     return sum(sum(abs(np.array(pixelArray) - np.array(flipLR(pixelArray)))))
 
 def asymmUD(pixelArray):
-    import numpy as np
     return sum(sum(abs(np.array(pixelArray) - np.array(flipUD(pixelArray)))))
 
 def asymmROT(pixelArray):
-    import numpy as np
-    return sum(sum(abs(np.array(pixelArray) - np.array(rotate(pixelArray,180)))))
+    return sum(sum(abs(np.array(pixelArray) - np.array(rotate(pixelArray, 180)))))
 
 def applyStat(pixelArray,statName):
     methodToCall = globals()[statName]

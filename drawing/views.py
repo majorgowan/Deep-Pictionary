@@ -87,12 +87,12 @@ def drawingPad(request):
 # browse other drawings
 def browse(request):
 
-    bitmapStringList = list(Drawing.objects.values_list('bitmap',flat=True))
-    categoryList = list(Drawing.objects.values_list('category',flat=True))
-    predictedList = list(Drawing.objects.values_list('predicted',flat=True))
+    dateList = list(Drawing.objects.order_by("-draw_date").values_list('draw_date',flat=True))
+    bitmapStringList = list(Drawing.objects.order_by("-draw_date").values_list('bitmap',flat=True))
+    categoryList = list(Drawing.objects.order_by("-draw_date").values_list('category',flat=True))
+    predictedList = list(Drawing.objects.order_by("-draw_date").values_list('predicted',flat=True))
 
-    zipadee = zip(bitmapStringList, categoryList, predictedList)
-    zipadee.reverse()
+    zipadee = list(zip(bitmapStringList, categoryList, predictedList, dateList))
 
     context = {
             'zipadee': zipadee,
@@ -124,7 +124,7 @@ def statPlots(request):
 
     colours = ['#000099','#ff0000','#009933','#000000']
 
-    zipadee = zip(category_list, cellCounts, asymmLRs, asymmUDs, asymmROTs, colours)
+    zipadee = list(zip(category_list, cellCounts, asymmLRs, asymmUDs, asymmROTs, colours))
 
     mins = []
     mins.append(min([x for y in asymmLRs for x in y]))
@@ -148,7 +148,7 @@ def statTests(request):
     ncells = [[2,2],[3,3],[5,5],[6,6]]
     #ncells = [[2,2],[3,3]]
     category_list = list(Category.objects.values_list('category_name',flat=True))
-    Ks = range(3,7)
+    Ks = list(range(3,7))
     #Ks = range(3,5)
 
     # test algorithm on training set
@@ -170,16 +170,16 @@ def statTests(request):
                 corr = sum(predictions[ii] == cat for ii,cat in enumerate(categories) if cat==category)
                 incorr = sum(predictions[ii] != cat for ii,cat in enumerate(categories) if cat==category)
                 mc = sum(confidences[ii] for ii,cat in enumerate(categories) if cat==category)
-                mc = math.floor(1000*mc/(corr + incorr))/10
+                mc = int(math.floor(1000*mc/(corr + incorr))/10)
                 correct.append(corr)
                 total.append(corr+incorr)
                 mean_conf.append(mc)
-            inner_zips.append(zip(category_list,correct,total,mean_conf))
-            scores.append(math.floor(1000*score)/10)
+            inner_zips.append(list(zip(category_list,correct,total,mean_conf)))
+            scores.append(int(math.floor(1000*score)/10))
             print('K: %d, accuracy: %f' % (KK,score))
-        middle_zips.append(zip(Ks,scores,inner_zips))
+        middle_zips.append(list(zip(Ks,scores,inner_zips)))
 
-    zipadee = zip(ncells, middle_zips)
+    zipadee = list(zip(ncells, middle_zips))
 
     context = {
             'zipadee': zipadee,
@@ -202,10 +202,10 @@ def silly(request):
         bitmapListFlat = [[a for row in bitmap for a in row] for bitmap in bitmapList]
 
         # calculate average of bitmaps for each category
-        sumBitmap = [sum(a[ii] for a in bitmapListFlat) for ii in xrange(len(bitmapListFlat[0]))]
+        sumBitmap = [sum(a[ii] for a in bitmapListFlat) for ii in range(len(bitmapListFlat[0]))]
         averages.append([float(a)/max(sumBitmap) for a in sumBitmap])
 
-    zipadee = zip(category_list, averages)
+    zipadee = list(zip(category_list, averages))
 
     context = {
             'zipadee': zipadee,
@@ -306,8 +306,8 @@ def accuracyTest_knn(ncell, K=5, featureList=['asymmLR','asymmUD','aymmROT'],equ
                     featureLoL.append(feat)
 
     # transpose feature LoL:
-    featureLoL = map(list,zip(*featureLoL))
-    
+    featureLoL = list(map(list, zip(*featureLoL)))
+
     # perform leave-one-out test:
     predictions, confidences, score = knn.accuracyTest(featureLoL, categories, K=K, method='Euclid_sq')
     #print('K=%d: accuracy: %f' % (K,score))
@@ -364,7 +364,7 @@ def retroPredict_knn(ncell, K=5, \
                         feature_test.append(feat_test)
 
         # transpose feature LoL:
-        featureLoL = map(list,zip(*featureLoL))
+        featureLoL = map(list, zip(*featureLoL))
         
         dist_to_all = knn.distToAll(featureLoL, feature_test, 'Euclid_sq')
         # print(zip(categories,dist_to_all))
